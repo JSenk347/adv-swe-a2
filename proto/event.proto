@@ -5,8 +5,17 @@ package campus.events.v1;
 service EventService {
   rpc GetEvent(EventId) returns (Event);
   rpc ReleaseSeat(EventId) returns (Empty);
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse);
+  rpc CreateEvent(CreateEventRequest) returns (Event);
+  rpc UpdateEvent(UpdateEventRequest) returns (Event);
+  rpc DeleteEvent(EventId) returns (Empty);
+  rpc ReserveSeat(EventId) returns (Empty);
 }
 
 message EventId { int64 event_id = 1; }
 message Event { int64 event_id = 1; string name = 2; int32 capacity = 3; int32 available_seats = 4; }
+message ListEventsRequest { optional string name_filter = 1; }
+message ListEventsResponse { repeated Event events = 1; }
+message CreateEventRequest { string name = 1; int32 capacity = 2; }
+message UpdateEventRequest { int64 event_id = 1; optional string name = 2; optional int32 capacity = 3; }
 message Empty {}

@@ -1,7 +1,7 @@
 import json
 
 import grpc
-from flask import Flask, abort, jsonify
+from flask import Flask, abort, jsonify, request
 from werkzeug.exceptions import HTTPException
 import event_pb2
 import event_pb2_grpc
@@ -37,6 +37,12 @@ def rpc_error(error):
 @app.errorhandler(HTTPException)
 def http_error(error):
     return jsonify(error=error.description), error.code
+
+
+# issue #5: staff auth (Precious)
+@app.before_request
+def require_staff_token():
+    return None
 
 
 @app.get("/api/v1/events")
