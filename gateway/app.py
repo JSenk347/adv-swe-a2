@@ -73,7 +73,19 @@ def add_event():
 
 @app.patch("/api/v1/events/<int:event_id>")
 def edit_event(event_id):
-    abort(501, "TODO task 2: implement PATCH /api/v1/events/<event_id>")
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        abort(400, "Request body must be a JSON object")
+    if "name" in body and not isinstance(body["name"], str):
+        abort(400, "'name' must be a string")
+    if "capacity" in body:
+        if type(body["capacity"]) is not int:  # isinstance would accept true/false, since bool subclasses int
+            abort(400, "'capacity' must be an integer")
+        if not 0 <= body["capacity"] <= 2**31 - 1:
+            abort(400, "'capacity' must be between 0 and 2147483647")
+    sent = {key: body[key] for key in ("name", "capacity") if key in body}
+    event = events.UpdateEvent(event_pb2.UpdateEventRequest(event_id=event_id, **sent))
+    return jsonify(fields(event))
 
 
 @app.delete("/api/v1/events/<int:event_id>")
