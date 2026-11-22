@@ -35,6 +35,26 @@ class EventService(rpc.EventServiceServicer):
         write("UPDATE events SET seats_taken = seats_taken - 1 WHERE event_id = %s", (request.event_id,))
         return pb.Empty()
 
+    # issue #4: list events (Precious)
+    def ListEvents(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #4")
+
+    # issue #6: create event (Darren)
+    def CreateEvent(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #6")
+
+    # issue #7: update event (Darren)
+    def UpdateEvent(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #7")
+
+    # issue #8: delete event (Anna)
+    def DeleteEvent(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #8")
+
+    # issue #10: reserve a seat for a booking (Jordan)
+    def ReserveSeat(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #10")
+
 
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=8))
 rpc.add_EventServiceServicer_to_server(EventService(), server)
