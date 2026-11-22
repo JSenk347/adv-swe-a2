@@ -58,7 +58,10 @@ class RegistrationService(rpc.RegistrationServiceServicer):
 
     # issue #11: list an event's bookings (Jordan)
     def ListBookings(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #11")
+        rows = read("""SELECT b.booking_id, b.event_id, b.participant_id, p.name AS participant_name
+                       FROM bookings b JOIN participants p ON p.participant_id = b.participant_id
+                       WHERE b.event_id = %s AND b.state = 'confirmed' ORDER BY b.booking_id""", (request.event_id,))
+        return pb.ListBookingsResponse(bookings=[pb.Booking(**row) for row in rows])
 
 
 events = event_pb2_grpc.EventServiceStub(grpc.insecure_channel(CONFIG["event_service"]))
