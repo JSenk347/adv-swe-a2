@@ -57,12 +57,35 @@ def get_event(event_id):
 
 @app.post("/api/v1/events")
 def add_event():
-    abort(501, "TODO task 2: implement POST /api/v1/events")
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        abort(400, "Request body must be a JSON object")
+    name, capacity = body.get("name"), body.get("capacity")
+    if not isinstance(name, str):
+        abort(400, "'name' is required and must be a string")
+    if type(capacity) is not int:  # isinstance would accept true/false, since bool subclasses int
+        abort(400, "'capacity' is required and must be an integer")
+    if not 0 <= capacity <= 2**31 - 1:
+        abort(400, "'capacity' must be between 0 and 2147483647")
+    event = events.CreateEvent(event_pb2.CreateEventRequest(name=name, capacity=capacity))
+    return jsonify(fields(event)), 201
 
 
 @app.patch("/api/v1/events/<int:event_id>")
 def edit_event(event_id):
-    abort(501, "TODO task 2: implement PATCH /api/v1/events/<event_id>")
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        abort(400, "Request body must be a JSON object")
+    if "name" in body and not isinstance(body["name"], str):
+        abort(400, "'name' must be a string")
+    if "capacity" in body:
+        if type(body["capacity"]) is not int:  # isinstance would accept true/false, since bool subclasses int
+            abort(400, "'capacity' must be an integer")
+        if not 0 <= body["capacity"] <= 2**31 - 1:
+            abort(400, "'capacity' must be between 0 and 2147483647")
+    sent = {key: body[key] for key in ("name", "capacity") if key in body}
+    event = events.UpdateEvent(event_pb2.UpdateEventRequest(event_id=event_id, **sent))
+    return jsonify(fields(event))
 
 
 @app.delete("/api/v1/events/<int:event_id>")
