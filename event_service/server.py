@@ -41,7 +41,13 @@ class EventService(rpc.EventServiceServicer):
 
     # issue #6: create event (Darren)
     def CreateEvent(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #6")
+        name = request.name.strip()
+        if not name:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Event name must not be blank")
+        if len(name) > 150:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Event name must be at most 150 characters")
+        event_id = write("INSERT INTO events (name, capacity) VALUES (%s, %s)", (name, request.capacity))
+        return self.GetEvent(pb.EventId(event_id=event_id), context)
 
     # issue #7: update event (Darren)
     def UpdateEvent(self, request, context):
