@@ -30,6 +30,12 @@ class EventService(rpc.EventServiceServicer):
             context.abort(grpc.StatusCode.NOT_FOUND, "Event not found")
         return pb.Event(**found[0])
 
+    def ReserveSeat(self, request, context):
+        if self.GetEvent(request, context).available_seats < 1:
+            context.abort(grpc.StatusCode.RESOURCE_EXHAUSTED, "Event is full")
+        write("UPDATE events SET seats_taken = seats_taken + 1 WHERE event_id = %s", (request.event_id,))
+        return pb.Empty()
+
     def ReleaseSeat(self, request, context):
         self.GetEvent(request, context)
         write("UPDATE events SET seats_taken = seats_taken - 1 WHERE event_id = %s", (request.event_id,))
