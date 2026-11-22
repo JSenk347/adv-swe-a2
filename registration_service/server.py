@@ -44,6 +44,22 @@ class RegistrationService(rpc.RegistrationServiceServicer):
             call(self.events.ReleaseSeat, event_pb2.EventId(event_id=found[0]["event_id"]), context)
         return pb.Empty()
 
+    # issue #2: get participant (Joseph)
+    def GetParticipant(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #2")
+
+    # issue #3: create participant (Joseph)
+    def CreateParticipant(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #3")
+
+    # issue #10: create booking (Jordan)
+    def CreateBooking(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #10")
+
+    # issue #11: list an event's bookings (Jordan)
+    def ListBookings(self, request, context):
+        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #11")
+
 
 events = event_pb2_grpc.EventServiceStub(grpc.insecure_channel(CONFIG["event_service"]))
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=8))
