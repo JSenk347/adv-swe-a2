@@ -45,7 +45,31 @@ class EventService(rpc.EventServiceServicer):
 
     # issue #7: update event (Darren)
     def UpdateEvent(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #7")
+        changes, args = [], []
+        if request.HasField("name"):
+            name = request.name.strip()
+            if not name:
+                context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Event name must not be blank")
+            if len(name) > 150:
+                context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Event name must be at most 150 characters")
+            changes.append("name = %s")
+            args.append(name)
+
+        found = read("SELECT seats_taken FROM events WHERE event_id = %s", (request.event_id,))
+        if not found:
+            context.abort(grpc.StatusCode.NOT_FOUND, "Event not found")
+
+        if request.HasField("capacity"):
+            booked = found[0]["seats_taken"]
+            if request.capacity < booked:
+                context.abort(grpc.StatusCode.FAILED_PRECONDITION,
+                              f"Capacity cannot be below the {booked} seats already booked")
+            changes.append("capacity = %s")
+            args.append(request.capacity)
+
+        if changes:
+            write(f"UPDATE events SET {', '.join(changes)} WHERE event_id = %s", (*args, request.event_id))
+        return self.GetEvent(pb.EventId(event_id=request.event_id), context)
 
     # issue #8: delete event (Anna)
     def DeleteEvent(self, request, context):
