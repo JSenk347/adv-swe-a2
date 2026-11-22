@@ -110,7 +110,17 @@ def list_bookings(event_id):
 
 @app.post("/api/v1/registrations")
 def book():
-    abort(501, "TODO task 4: implement POST /api/v1/registrations")
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        abort(400, "Request body must be a JSON object")
+    for key in ("event_id", "participant_id"):
+        if type(body.get(key)) is not int:  # isinstance would accept true/false, since bool subclasses int
+            abort(400, f"'{key}' is required and must be an integer")
+        if not 1 <= body[key] <= 2**63 - 1:
+            abort(400, f"'{key}' must be between 1 and 9223372036854775807")
+    booking = registrations.CreateBooking(registration_pb2.CreateBookingRequest(
+        event_id=body["event_id"], participant_id=body["participant_id"]))
+    return jsonify(fields(booking)), 201
 
 
 @app.delete("/api/v1/registrations/<int:booking_id>")
