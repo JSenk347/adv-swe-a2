@@ -90,7 +90,8 @@ def edit_event(event_id):
 
 @app.delete("/api/v1/events/<int:event_id>")
 def delete_event(event_id):
-    abort(501, "TODO task 2: implement DELETE /api/v1/events/<event_id>")
+    events.DeleteEvent(event_pb2.EventId(event_id=event_id)) # builds EventId msg and calls service over gRPC
+    return "", 204
 
 
 @app.post("/api/v1/participants")
