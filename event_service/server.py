@@ -111,7 +111,10 @@ class EventService(rpc.EventServiceServicer):
 
     # issue #10: reserve a seat for a booking (Jordan)
     def ReserveSeat(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #10")
+        if self.GetEvent(request, context).available_seats < 1:
+            context.abort(grpc.StatusCode.RESOURCE_EXHAUSTED, "Event is full")
+        write("UPDATE events SET seats_taken = seats_taken + 1 WHERE event_id = %s", (request.event_id,))
+        return pb.Empty()
 
 
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=8))

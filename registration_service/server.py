@@ -54,7 +54,19 @@ class RegistrationService(rpc.RegistrationServiceServicer):
 
     # issue #10: create booking (Jordan)
     def CreateBooking(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #10")
+        if not read("SELECT 1 FROM participants WHERE participant_id = %s", (request.participant_id,)):
+            context.abort(grpc.StatusCode.NOT_FOUND, "Participant not found")
+        if read("""SELECT 1 FROM bookings WHERE event_id = %s AND participant_id = %s AND state = 'confirmed'""",
+                (request.event_id, request.participant_id)):
+            context.abort(grpc.StatusCode.ALREADY_EXISTS, "Participant is already booked on this event")
+        # Seat first, row second: a crash in between leaves a spare seat taken, never an overbooked event.
+        call(self.events.ReserveSeat, event_pb2.EventId(event_id=request.event_id), context)
+        booking_id = write("INSERT INTO bookings (event_id, participant_id) VALUES (%s, %s)",
+                           (request.event_id, request.participant_id))
+        found = read("""SELECT b.booking_id, b.event_id, b.participant_id, p.name AS participant_name
+                        FROM bookings b JOIN participants p ON p.participant_id = b.participant_id
+                        WHERE b.booking_id = %s""", (booking_id,))
+        return pb.Booking(**found[0])
 
     # issue #11: list an event's bookings (Jordan)
     def ListBookings(self, request, context):
