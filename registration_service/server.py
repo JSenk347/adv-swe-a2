@@ -46,7 +46,11 @@ class RegistrationService(rpc.RegistrationServiceServicer):
 
     # issue #2: get participant (Joseph)
     def GetParticipant(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #2")
+        found = read("SELECT participant_id, name FROM participants WHERE participant_id = %s",
+                     (request.participant_id,))
+        if not found:
+            context.abort(grpc.StatusCode.NOT_FOUND, "Participant not found")
+        return pb.Participant(**found[0])
 
     # issue #3: create participant (Joseph)
     def CreateParticipant(self, request, context):
