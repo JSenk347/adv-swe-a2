@@ -37,7 +37,27 @@ class EventService(rpc.EventServiceServicer):
 
     # issue #4: list events (Precious)
     def ListEvents(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #4")
+        if request.HasField("name_filter") and request.name_filter:
+            rows = read(
+                """SELECT event_id, name, capacity,
+                          capacity - seats_taken AS available_seats
+                   FROM events
+                   WHERE name LIKE %s
+                   ORDER BY event_id""",
+                (f"%{request.name_filter}%",)
+            )
+        else:
+            rows = read(
+                """SELECT event_id, name, capacity,
+                          capacity - seats_taken AS available_seats
+                   FROM events
+                   ORDER BY event_id"""
+            )
+
+        return pb.ListEventsResponse(
+            events=[pb.Event(**row) for row in rows]
+        )
+
 
     # issue #6: create event (Darren)
     def CreateEvent(self, request, context):

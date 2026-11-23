@@ -54,7 +54,16 @@ def require_staff_token():
 
 @app.get("/api/v1/events")
 def list_events():
-    abort(501, "TODO task 1: implement GET /api/v1/events")
+    name = request.args.get("name")
+
+    grpc_request = event_pb2.ListEventsRequest()
+
+    if name:
+        grpc_request.name_filter = name
+
+    response = events.ListEvents(grpc_request)
+
+    return jsonify([fields(event) for event in response.events])
 
 
 @app.get("/api/v1/events/<int:event_id>")
