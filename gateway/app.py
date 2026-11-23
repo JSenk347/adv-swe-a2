@@ -42,6 +42,13 @@ def http_error(error):
 # issue #5: staff auth (Precious)
 @app.before_request
 def require_staff_token():
+    if request.endpoint in ("add_event", "edit_event", "delete_event"):
+        expected_token = f"Bearer {CONFIG['staff_token']}"
+        provided_token = request.headers.get("Authorization")
+
+        if provided_token != expected_token:
+            return jsonify(error="Unauthorized"), 401
+
     return None
 
 
