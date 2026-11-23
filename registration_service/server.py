@@ -54,7 +54,13 @@ class RegistrationService(rpc.RegistrationServiceServicer):
 
     # issue #3: create participant (Joseph)
     def CreateParticipant(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #3")
+        name = request.name.strip()
+        if not name:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Participant name is required")
+        if len(name) > 150:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Participant name must be 150 characters or fewer")
+        participant_id = write("INSERT INTO participants (name) VALUES (%s)", (name,))
+        return pb.Participant(participant_id=participant_id, name=name)
 
     # issue #10: create booking (Jordan)
     def CreateBooking(self, request, context):
