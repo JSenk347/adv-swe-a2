@@ -99,7 +99,15 @@ class EventService(rpc.EventServiceServicer):
 
     # issue #8: delete event (Anna)
     def DeleteEvent(self, request, context):
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "TODO #8")
+        found = read("SELECT seats_taken FROM events WHERE event_id = %s", (request.event_id,))
+        # event doesn't exist
+        if not found:
+            context.abort(grpc.StatusCode.NOT_FOUND, "Event not found")
+        # event has bookings
+        if found[0]["seats_taken"] > 0:
+            context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Event has bookings and cannot be deleted")
+        write("DELETE FROM events WHERE event_id = %s", (request.event_id,))
+        return pb.Empty()
 
     # issue #10: reserve a seat for a booking (Jordan)
     def ReserveSeat(self, request, context):
