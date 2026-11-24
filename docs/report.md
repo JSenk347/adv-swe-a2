@@ -73,7 +73,6 @@ marked `optional` to tell the difference between "not sent" and "sent as zero".
 message Event { int64 event_id = 1; string name = 2; int32 capacity = 3; int32 available_seats = 4; }
 ```
 For event 2, the gateway returns this JSON to the client, which is 71 bytes:
-For event 2, the gateway returns this JSON to the client, which is 71 bytes:
 ```json
 {"available_seats":4,"capacity":4,"event_id":2,"name":"API design lab"}
 ```
