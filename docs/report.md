@@ -3,6 +3,9 @@
 ## 1. What we learned
 ### Joseph
 ### Precious
+
+I learned how microservices communicate through gRPC and Protocol Buffers while exposing REST endpoints through a central API gateway. Implementing the List Events functionality helped me understand how requests are passed from the gateway to the Event Service, how database queries are performed, and how the results are returned as JSON responses. Implementing staff authentication also showed me how the gateway can enforce access restrictions before requests reach the underlying services. Also, working with separate Git branches, pull requests, and code reviews helped me gain a better understanding of how collaboration in software development works and the importance of testing changes before merging them into the main branch.
+
 ### Darren
 
 I learned how a single request crosses process boundaries: the gateway validates JSON, builds a protobuf message, calls a gRPC stub, and the service talks to its own database. Splitting validation between the gateway (shape and types) and the service (business rules like blank names or capacity below seats already booked) made each layer simpler. I also got practice with a stricter Git workflow: one branch and PR per issue, written test tables, and reviewing teammates' code before merging.
@@ -12,6 +15,13 @@ I learned how a single request crosses process boundaries: the gateway validates
 
 ## 2. Monolithic and microservices architecture
 <!-- Precious -->
+A monolithic architecture is a software design in which all application components, such as the API, business logic, and database interactions, are developed and deployed as a single application. In contrast, a microservices architecture divides an application into smaller, independently deployable services that communicate over a network.
+
+The main advantage of a monolithic architecture is its simplicity. Since the components run together, development, testing, and deployment can be easier for smaller applications. However, as the application grows, changes to one component may require redeploying the entire application, and scaling individual features becomes more difficult.
+
+Microservices offer greater flexibility because services can be developed, deployed, maintained, and scaled independently. However, they create additional complexity, including network communication, service coordination, and handling failures between services.
+
+In our Campus Events application, the API Gateway receives HTTP requests and communicates with the Event Service and Registration Service using gRPC and Protocol Buffers. Each service manages its own database. This separation allows us to modify functionality such as event management or registration handling without necessarily modifying the other service. Through this assignment, we gained a practical understanding of how microservices improve modularity while requiring more careful coordination between application components.
 
 ## 3. JSON and Protocol Buffers
 <!-- Anna -->
@@ -31,6 +41,8 @@ Our system uses both, which made the comparison concrete. The gateway is a REST 
 ## 6. Each member's contributions
 ### Joseph
 ### Precious
+I implemented the List Events functionality (Issue #4), including the `ListEvents` gRPC method in the Event Service and the corresponding REST endpoint in the API Gateway. My implementation supports retrieving all events, optional name filtering using SQL `LIKE`, and returning event information with available seat counts. I also implemented staff authentication (Issue #5) in the API Gateway, requiring a valid Bearer token for event creation, updates, and deletion while allowing public read operations. I tested both features using HTTP requests and verified the expected responses for successful requests and unauthorized access. I also reviewed Anna's Delete Event implementation (Issue #8), testing successful deletion, nonexistent events, events with existing bookings, and unauthorized requests. Lastly, I participated in integration testing and contributed to the team's documentation and report.
+
 ### Darren
 
 I implemented create event (#6, PR #16) and update event (#7, PR #17), covering the gateway route and the Event service method for each, including validation and the 409 when capacity drops below booked seats. I reviewed the contract skeleton (requested changes on #14, approved the revision in #15), approved Jordan's list-bookings PR (#19), and reviewed, approved and merged Joseph's participant PRs (#23, #26).
@@ -41,5 +53,9 @@ I implemented create event (#6, PR #16) and update event (#7, PR #17), covering 
 ## Design choices from the README
 ### ListEvents: repeated field or stream
 <!-- Precious -->
+We chose to use a `repeated Event` field in `ListEventsResponse` rather than gRPC streaming because the Campus Events API retrieves a relatively small collection of events in a single request. A repeated field allows the Event Service to return all matching events in one Protobuf response, which the API Gateway can easily convert into a JSON array for the REST client.
+
+Using gRPC streaming would allow events to be delivered individually as they become available, which could be beneficial for very large datasets or continuous updates. However, streaming would introduce additional complexity that is unnecessary for our application's current requirements. Since our endpoint returns a complete list of events rather than a continuous stream, a repeated field provides a simpler implementation that meets our needs.
+
 ### Order of the two booking writes
 <!-- Jordan -->
