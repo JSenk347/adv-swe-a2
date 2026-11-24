@@ -2,6 +2,9 @@
 
 ## 1. What we learned
 ### Joseph
+
+Writing the contract before any features is the reason five of us could work at once. I added every proto message and an empty method for each route in the first pull request, and after that everyone filled in their own method and nothing collided when we merged. Error handling was new to me too. A service raises a gRPC status such as `NOT_FOUND`, and the gateway is the only place that turns it into an HTTP number like 404. The part I didn't expect came from reviewing the booking code: it passed every check on the issue, and two requests sent at the same moment could still both take the last seat.
+
 ### Precious
 ### Darren
 
