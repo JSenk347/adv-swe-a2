@@ -39,6 +39,9 @@ Sources: gRPC documentation, "gRPC Load Balancing" (grpc.io/blog/grpc-load-balan
 
 ## 6. Each member's contributions
 ### Joseph
+
+The contract skeleton (#1) was mine: every RPC and message in the two proto files, plus an empty labelled method per route so each teammate had one place to work. After that I implemented get participant (#2) and create participant (#3) in the registration service and the gateway. For reviews, I ran Jordan's create booking (#18) on fresh seed data, reported that two simultaneous bookings for the last seat both succeed, and merged it, and I approved his gateway host change (#28). Some of my work isn't in the commits. I wrote the 13 issues with their acceptance criteria and the plan that split the work into five streams, set up the team's Google Cloud VM, and ran the smoke test on it.
+
 ### Precious
 ### Darren
 
