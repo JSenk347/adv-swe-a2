@@ -20,12 +20,22 @@ event service over gRPC.
 ## Requirements
 
 - Python 3.9 or newer
-- A running MySQL server on port with a username and password
+- A running MySQL server. The config files default to `127.0.0.1:3306`, user `root`,
+  empty password
 - `make`
 
-If your MySQL uses a host, port, user or password, other than values included edit the `db` section of
+If your MySQL uses a different host, port, user or password, edit the `db` section of
 `event_service/config.json` and `registration_service/config.json`, and the `MYSQL`
 variable at the top of the matching `Makefile`.
+
+On Ubuntu, `root` signs in through the Linux account (`auth_socket`) by default, so TCP
+logins with a password fail. Either set a password for `root` (or create another user) and
+put it in the files above, or, on a dev machine only, allow the empty password:
+
+```bash
+sudo apt install -y mysql-server
+sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
+```
 
 ## Start
 
@@ -219,20 +229,10 @@ curl -sS -X POST http://127.0.0.1:8080/api/v1/events \
   -d '{"name":"Design review","capacity":8}'
 ```
 
-Every route in that table already exists in `gateway/app.py`, so the shape of the finished
-system is visible from the start. The ones you have not built yet answer 501 and name the
-task they belong to:
-
-```bash
-curl -sS http://127.0.0.1:8080/api/v1/events
-{"error":"TODO task 1: implement GET /api/v1/events"}
-```
-
-List all of them at once:
-
-```bash
-grep -n TODO gateway/app.py
-```
+Every route in that table exists in `gateway/app.py`. In the starter code, the ones not yet
+built answered 501 and named their task (for example `{"error":"TODO task 1: implement GET
+/api/v1/events"}`). All of them are now implemented, so `grep -n TODO gateway/app.py`
+finds nothing.
 
 The gateway is only ever the translation layer. Replacing one of those stubs means
 building the protobuf message, the service method behind it, and the route, which is why
@@ -377,6 +377,15 @@ must fail with 409 without changing `seats_taken`. Cancelling Dana's booking wit
 cancel flow you were given must put event 2 back to 4 available seats, which is the proof
 that your booking path and the given cancel path agree about seats.
 
+`scripts/smoke_test.sh` runs this sequence and checks each answer. With `make dev` running,
+run it from another terminal on the same machine (it calls `make db` first, which resets
+both databases to the seed data):
+
+```bash
+bash scripts/smoke_test.sh
+BASE=http://<host>:8080/api/v1 bash scripts/smoke_test.sh   # against another address
+```
+
 ## Going further
 
 - Your duplicate-booking check reads and then inserts. Two simultaneous requests can both
@@ -399,16 +408,22 @@ that your booking path and the given cancel path agree about seats.
 ## Layout
 
 ```text
-campus-booking/
+adv-swe-a2/
   Makefile                   install, gen, db, dev for the whole system
   requirements.txt
   proto/                     event.proto, registration.proto
   gateway/                   app.py, config.json, Makefile
   event_service/             server.py, config.json, schema.sql, Makefile
   registration_service/      server.py, config.json, schema.sql, Makefile
+  scripts/                   smoke_test.sh
+  docs/                      report.md
 ```
 
 Every service reads a `config.json` next to its code, holding its own listen address, the
-addresses of the services it calls, and its database connection. No environment variables
-are used. `make gen` writes generated code into a `generated/` directory inside each
+addresses of the services it calls, and its database connection. The services run with no
+environment variables (only the smoke test reads an optional `BASE`).
+
+The gateway binds to `0.0.0.0:8080`, so it accepts connections from other machines (for
+example on a cloud VM, where the firewall must also allow TCP 8080). The two services bind
+to `127.0.0.1` and are reachable only through the gateway. `make gen` writes generated code into a `generated/` directory inside each
 service; those are not checked in.
